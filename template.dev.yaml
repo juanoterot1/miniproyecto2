@@ -1,0 +1,32 @@
+#TEMPLATE TO TEST SAM LOCAHOST#
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+
+  TestLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: flask-layer
+      Description: flask_layer
+      ContentUri: root
+
+  TestLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: wsgi.lambda_handler
+      Runtime: python3.10  # Cambiado a python3.10
+      CodeUri: root
+      Timeout: 30
+      Layers:
+        - Ref: TestLayer
+      Environment:
+        Variables:
+          #DATABASE_URL: postgresql+psycopg2://user:password@host/db
+          DATABASE_URL: postgresql+psycopg2://root:toor@miniproyecto2-db/miniproyecto2
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
