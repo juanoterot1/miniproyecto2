@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
-from root.app.services.credit_account_service import CreditAccountService
+from app.services.credit_account_service import CreditAccountService
 from flask_injector import inject
 import logging
 

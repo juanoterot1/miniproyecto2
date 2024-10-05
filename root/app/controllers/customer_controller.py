@@ -49,7 +49,7 @@ def create_customer(customer_service: CustomerService):
         return ApiResponse.bad_request(message=str(e))
 
     except Exception as e:
-        logger.error(f"Error creating customer: {e}")
+        logger.error(f"Error creating customer: {e}", exc_info=True)  # Captura más información del error
         return ApiResponse.internal_server_error()
 
 
@@ -97,7 +97,7 @@ def update_customer(customer_id, customer_service: CustomerService):
         return ApiResponse.not_found(resource="Customer", resource_id=customer_id)
 
     except Exception as e:
-        logger.error(f"Error updating customer with ID {customer_id}: {e}")
+        logger.error(f"Error updating customer with ID {customer_id}: {e}", exc_info=True)
         return ApiResponse.internal_server_error()
 
 
@@ -121,7 +121,7 @@ def get_all_customers(customer_service: CustomerService):
         return ApiResponse.not_found(resource="Customers")
 
     except Exception as e:
-        logger.error(f"Error fetching customers: {e}")
+        logger.error(f"Error fetching customers: {e}", exc_info=True)
         return ApiResponse.internal_server_error()
 
 
@@ -153,7 +153,7 @@ def get_customer_by_id(customer_id, customer_service: CustomerService):
         return ApiResponse.not_found(resource="Customer", resource_id=customer_id)
 
     except Exception as e:
-        logger.error(f"Error fetching customer by ID {customer_id}: {e}")
+        logger.error(f"Error fetching customer by ID {customer_id}: {e}", exc_info=True)
         return ApiResponse.internal_server_error()
 
 
@@ -185,5 +185,5 @@ def delete_customer(customer_id, customer_service: CustomerService):
         return ApiResponse.not_found(resource="Customer", resource_id=customer_id)
 
     except Exception as e:
-        logger.error(f"Error deleting customer with ID {customer_id}: {e}")
+        logger.error(f"Error deleting customer with ID {customer_id}: {e}", exc_info=True)
         return ApiResponse.internal_server_error()
