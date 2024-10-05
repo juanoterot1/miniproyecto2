@@ -12,6 +12,7 @@ from app.controllers.order_controller import order_bp
 from app.controllers.order_item_controller import order_item_bp
 from app.controllers.product_controller import product_bp
 from app.controllers.sales_controller import sale_bp
+from app.controllers.credit_account_controller import credit_account_bp
 
 # Import Services
 from app.services.tenants_service import TenantService
@@ -20,6 +21,7 @@ from app.services.order_service import OrderService
 from app.services.order_item_service import OrderItemService
 from app.services.product_service import ProductService
 from app.services.sale_service import SaleService
+from app.services.credit_account_service import CreditAccountService
 
 def configure(binder):
     binder.bind(TenantService, to=TenantService, scope=singleton)
@@ -28,6 +30,7 @@ def configure(binder):
     binder.bind(OrderItemService, to=OrderItemService, scope=singleton)
     binder.bind(ProductService, to=ProductService, scope=singleton)
     binder.bind(SaleService, to=SaleService, scope=singleton)
+    binder.bind(CreditAccountService, to=CreditAccountService, scope=singleton)
 
 def create_app():
     app = Flask(__name__)
