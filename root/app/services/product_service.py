@@ -19,11 +19,13 @@ class ProductService:
             logger.error(f"Error creating product: {e}")
             raise InternalServerError("An error occurred while creating the product.")
 
-    def get_all_products(self):
+    def get_products_paginated(self, page, per_page):
         try:
-            return self.product_repository.get_all_products()
+            logger.info(f"Fetching products with pagination: page {page}, per_page {per_page}")
+            products, total = self.product_repository.get_products_paginated(page, per_page)
+            return products, total
         except Exception as e:
-            logger.error(f"Error retrieving products: {e}")
+            logger.error(f"Error fetching paginated products: {e}")
             raise InternalServerError("An error occurred while retrieving products.")
 
     def get_product_by_id(self, product_id):

@@ -20,6 +20,14 @@ class SaleRepository:
             raise e
 
     @staticmethod
+    def get_sales_paginated(page, per_page):
+        try:
+            paginated = Sale.query.paginate(page=page, per_page=per_page, error_out=False)
+            return paginated.items, paginated.total
+        except SQLAlchemyError as e:
+            raise e
+
+    @staticmethod
     def get_sale_by_id(sale_id):
         try:
             return Sale.query.get(sale_id)

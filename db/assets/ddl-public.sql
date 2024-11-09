@@ -1,3 +1,4 @@
+-- Tabla tenants
 CREATE TABLE tenants (
     tenant_id SERIAL PRIMARY KEY,
     tenant_name VARCHAR(255) NOT NULL,
@@ -5,54 +6,87 @@ CREATE TABLE tenants (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE users (
+-- Tabla customers
+CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
-    username VARCHAR NOT NULL UNIQUE,
-    password VARCHAR NOT NULL,
     full_name VARCHAR NOT NULL,
-    mail VARCHAR NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    email VARCHAR UNIQUE NOT NULL,
+    phone VARCHAR NOT NULL,
+    address VARCHAR,
+    credit_limit FLOAT DEFAULT 0.0 NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE TABLE evaluations (
+-- Tabla orders
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    delivery_date TIMESTAMP,
+    status VARCHAR NOT NULL DEFAULT 'pending',
+    payment_method VARCHAR NOT NULL,
+    id_customer INTEGER NOT NULL,
+    FOREIGN KEY (id_customer) REFERENCES customers(id) ON DELETE CASCADE
+);
+
+-- Tabla products
+CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
     description VARCHAR,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    price FLOAT NOT NULL,
+    stock INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE TABLE groups (
+-- Tabla inventory
+CREATE TABLE inventory (
     id SERIAL PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    product_id INTEGER NOT NULL,
+    stock_quantity INTEGER NOT NULL,
+    restock_date TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
-CREATE TABLE questions (
+-- Tabla credit_accounts
+CREATE TABLE credit_accounts (
     id SERIAL PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    value FLOAT,
-    id_group INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-    id_evaluation INTEGER NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE
+    credit_balance FLOAT NOT NULL,
+    due_date TIMESTAMP NOT NULL,
+    id_customer INTEGER NOT NULL,
+    FOREIGN KEY (id_customer) REFERENCES customers(id) ON DELETE CASCADE
 );
 
-CREATE TABLE answers_detail (
+-- Tabla order_items
+CREATE TABLE order_items (
     id SERIAL PRIMARY KEY,
-    company VARCHAR NOT NULL,
-    delegation VARCHAR NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    dni VARCHAR NOT NULL,
-    id_evaluation INTEGER NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE,
-    id_question INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
-    qualification VARCHAR
+    quantity INTEGER NOT NULL,
+    price FLOAT NOT NULL,
+    id_order INTEGER NOT NULL,
+    id_product INTEGER NOT NULL,
+    FOREIGN KEY (id_order) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_product) REFERENCES products(id) ON DELETE CASCADE
 );
 
-CREATE TABLE answers_scores (
+-- Tabla sales
+CREATE TABLE sales (
     id SERIAL PRIMARY KEY,
-    company VARCHAR NOT NULL,
-    delegation VARCHAR NOT NULL,
-    dni VARCHAR NOT NULL,
-    id_evaluation INTEGER NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE,
-    id_user INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    total_qualification VARCHAR,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    total_amount FLOAT NOT NULL,
+    id_customer INTEGER NOT NULL,
+    id_order INTEGER,
+    FOREIGN KEY (id_customer) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_order) REFERENCES orders(id) ON DELETE SET NULL
+);
+
+-- Tabla sales_reports
+CREATE TABLE sales_reports (
+    id SERIAL PRIMARY KEY,
+    report_type VARCHAR NOT NULL,
+    report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    total_sales FLOAT NOT NULL,
+    most_sold_product VARCHAR,
+    least_sold_product VARCHAR,
+    pending_collections FLOAT,
+    id_customer INTEGER NOT NULL,
+    FOREIGN KEY (id_customer) REFERENCES customers(id) ON DELETE CASCADE
 );

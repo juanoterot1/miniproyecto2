@@ -21,11 +21,15 @@ class OrderRepository:
             raise e
 
     @staticmethod
-    def get_all_orders():
-        try:
-            return Order.query.all()
-        except SQLAlchemyError as e:
-            raise e
+    def get_orders_paginated(page, per_page, status=None, id_customer=None):
+        query = Order.query
+        if status:
+            query = query.filter_by(status=status)
+        if id_customer:
+            query = query.filter_by(id_customer=id_customer)
+
+        paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+        return paginated.items, paginated.total
 
     @staticmethod
     def get_order_by_id(order_id):
