@@ -21,9 +21,10 @@ class ProductRepository:
             raise e
 
     @staticmethod
-    def get_all_products():
+    def get_products_paginated(page, per_page):
         try:
-            return Product.query.all()
+            paginated = Product.query.paginate(page=page, per_page=per_page, error_out=False)
+            return paginated.items, paginated.total
         except SQLAlchemyError as e:
             raise e
 

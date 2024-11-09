@@ -10,6 +10,9 @@ class Order(db.Model):
     status = db.Column(db.String, nullable=False, default='pending')
     payment_method = db.Column(db.String, nullable=False)
     id_customer = db.Column(db.Integer, db.ForeignKey('customers.id', ondelete='CASCADE'), nullable=False)
+    
+    # Relación con OrderItem
+    order_items = db.relationship('OrderItem', backref='order', cascade="all, delete-orphan", lazy=True)
 
     def __init__(self, payment_method, id_customer, delivery_date=None, status='pending'):
         self.payment_method = payment_method
@@ -24,7 +27,8 @@ class Order(db.Model):
             "delivery_date": self.delivery_date,
             "status": self.status,
             "payment_method": self.payment_method,
-            "id_customer": self.id_customer
+            "id_customer": self.id_customer,
+            "order_items": [item.as_dict() for item in self.order_items]  # Incluye los items en la salida
         }
 
     def __repr__(self):

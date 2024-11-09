@@ -21,6 +21,14 @@ class OrderItemRepository:
             raise e
 
     @staticmethod
+    def get_order_items_paginated(page, per_page, id_order=None):
+        query = OrderItem.query
+        if id_order:
+            query = query.filter_by(id_order=id_order)
+        paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+        return paginated.items, paginated.total
+
+    @staticmethod
     def get_order_item_by_id(order_item_id):
         try:
             return OrderItem.query.get(order_item_id)

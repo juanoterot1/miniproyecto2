@@ -2,31 +2,47 @@ import logging
 from flask_injector import inject
 from werkzeug.exceptions import InternalServerError, NotFound
 from app.repositories.order_repository import OrderRepository
+from app.services.order_item_service import OrderItemService  # Importamos OrderItemService
 
 logger = logging.getLogger(__name__)
 
 class OrderService:
 
     @inject
-    def __init__(self, order_repository: OrderRepository):
+    def __init__(self, order_repository: OrderRepository, order_item_service: OrderItemService):
         self.order_repository = order_repository
+        self.order_item_service = order_item_service  # Inyección de OrderItemService
 
-    def create_order(self, payment_method, id_customer, delivery_date=None, status='pending'):
+    def create_order(self, payment_method, id_customer, delivery_date=None, status='pending', order_items=None):
         try:
             logger.info(f"Creating new order for customer ID: {id_customer}")
-            return self.order_repository.create_order(
+            new_order = self.order_repository.create_order(
                 payment_method, id_customer, delivery_date, status
             )
+
+            # Crear los items de la orden
+            if order_items:
+                for item in order_items:
+                    self.order_item_service.create_order_item(
+                        quantity=item['quantity'],
+                        price=item['price'],
+                        id_order=new_order.id,
+                        id_product=item['id_product']
+                    )
+
+            return new_order
         except Exception as e:
             logger.error(f"Error creating order: {e}")
             raise InternalServerError("An error occurred while creating the order.")
 
-    def get_all_orders(self):
+    def get_orders_paginated(self, page, per_page, **filters):
         try:
-            return self.order_repository.get_all_orders()
+            logger.info(f"Fetching orders with pagination: page {page}, per_page {per_page}")
+            orders, total = self.order_repository.get_orders_paginated(page, per_page, **filters)
+            return orders, total
         except Exception as e:
-            logger.error(f"Error retrieving orders: {e}")
-            raise InternalServerError("An error occurred while retrieving orders.")
+            logger.error(f"Error fetching paginated orders: {e}")
+            raise InternalServerError("An error occurred while fetching orders.")
 
     def get_order_by_id(self, order_id):
         try:

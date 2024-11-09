@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from flask_injector import inject
 from werkzeug.exceptions import BadRequest, NotFound
 from app.services.customer_service import CustomerService
-from app.utils.api_response import ApiResponse
+from app.utils.response import create_response
 
 # Logger configuration
 logger = logging.getLogger(__name__)
@@ -16,23 +16,15 @@ customer_bp = Blueprint('customers', __name__)
 def create_customer(customer_service: CustomerService):
     """
     Endpoint to create a new customer.
-
-    Body:
-        JSON: Must contain 'full_name', 'email', and 'phone', optionally 'address' and 'credit_limit'.
-
-    Returns:
-        JSON: A JSON response with the details of the created customer or an error message.
     """
     try:
         data = request.get_json()
 
-        # Validate required fields
         if not data or 'full_name' not in data or 'email' not in data or 'phone' not in data:
             logger.warning("Missing required fields: 'full_name', 'email', or 'phone'")
             raise BadRequest("Missing required fields: 'full_name', 'email', or 'phone'")
 
         logger.info(f"Creating new customer with data: {data}")
-
         new_customer = customer_service.create_customer(
             full_name=data.get('full_name'),
             email=data.get('email'),
@@ -42,15 +34,15 @@ def create_customer(customer_service: CustomerService):
         )
 
         logger.info("Customer created successfully")
-        return ApiResponse.created(data=[new_customer.as_dict()])
+        return create_response(success=True, result=new_customer.as_dict(), status=201)
 
     except BadRequest as e:
         logger.error(f"Bad request: {e}")
-        return ApiResponse.bad_request(message=str(e))
+        return create_response(success=False, message=str(e), status=400)
 
     except Exception as e:
-        logger.error(f"Error creating customer: {e}", exc_info=True)  # Captura más información del error
-        return ApiResponse.internal_server_error()
+        logger.error(f"Error creating customer: {e}", exc_info=True)
+        return create_response(success=False, message="Internal server error", status=500)
 
 
 @customer_bp.route('/customers/<int:customer_id>', methods=['PUT'])
@@ -58,15 +50,6 @@ def create_customer(customer_service: CustomerService):
 def update_customer(customer_id, customer_service: CustomerService):
     """
     Endpoint to update an existing customer.
-
-    Args:
-        customer_id (int): The ID of the customer to update.
-
-    Body:
-        JSON: Can contain 'full_name', 'email', 'phone', 'address', or 'credit_limit'.
-
-    Returns:
-        JSON: A JSON response with the updated customer or an error message.
     """
     try:
         data = request.get_json()
@@ -82,47 +65,49 @@ def update_customer(customer_id, customer_service: CustomerService):
         )
 
         if not updated_customer:
-            logger.info(f"Customer with ID {customer_id} not found.")
             raise NotFound("Customer not found.")
 
         logger.info(f"Customer with ID {customer_id} updated successfully")
-        return ApiResponse.ok(data=[updated_customer.as_dict()])
+        return create_response(success=True, result=updated_customer.as_dict(), status=200)
 
     except BadRequest as e:
         logger.warning(f"Bad request: {e}")
-        return ApiResponse.bad_request(message=str(e))
+        return create_response(success=False, message=str(e), status=400)
 
     except NotFound as e:
         logger.warning(f"Customer not found: {e}")
-        return ApiResponse.not_found(resource="Customer", resource_id=customer_id)
+        return create_response(success=False, message=str(e), status=404)
 
     except Exception as e:
         logger.error(f"Error updating customer with ID {customer_id}: {e}", exc_info=True)
-        return ApiResponse.internal_server_error()
+        return create_response(success=False, message="Internal server error", status=500)
 
 
 @customer_bp.route('/customers', methods=['GET'])
 @inject
 def get_all_customers(customer_service: CustomerService):
     """
-    Endpoint to retrieve all customers.
-
-    Returns:
-        JSON: A JSON response with a list of all customers or an error message.
+    Endpoint to retrieve paginated customers with optional filters.
     """
     try:
-        logger.info("Fetching all customers")
-        customers = customer_service.get_all_customers()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        filters = {
+            "full_name": request.args.get('full_name'),
+            "email": request.args.get('email')
+        }
 
-        return ApiResponse.ok(data=[customer.as_dict() for customer in customers])
+        customers, total = customer_service.get_customers_paginated(page, per_page, **filters)
 
-    except NotFound as e:
-        logger.warning("No customers found.")
-        return ApiResponse.not_found(resource="Customers")
+        return create_response(success=True, result={"data": [customer.as_dict() for customer in customers], "total": total}, status=200)
+
+    except BadRequest as e:
+        logger.warning(f"Bad request: {e}")
+        return create_response(success=False, message=str(e), status=400)
 
     except Exception as e:
         logger.error(f"Error fetching customers: {e}", exc_info=True)
-        return ApiResponse.internal_server_error()
+        return create_response(success=False, message="Internal server error", status=500)
 
 
 @customer_bp.route('/customers/<int:customer_id>', methods=['GET'])
@@ -130,31 +115,24 @@ def get_all_customers(customer_service: CustomerService):
 def get_customer_by_id(customer_id, customer_service: CustomerService):
     """
     Endpoint to retrieve a customer by its ID.
-
-    Args:
-        customer_id (int): The ID of the customer to retrieve.
-
-    Returns:
-        JSON: A JSON response with the requested customer or an error message.
     """
     try:
         logger.info(f"Fetching customer by ID: {customer_id}")
         customer = customer_service.get_customer_by_id(customer_id)
 
         if not customer:
-            logger.warning(f"Customer with ID {customer_id} not found.")
             raise NotFound("Customer not found")
 
         logger.info("Customer fetched successfully")
-        return ApiResponse.ok(data=[customer.as_dict()])
+        return create_response(success=True, result=customer.as_dict(), status=200)
 
     except NotFound as e:
         logger.warning(f"Customer not found: {e}")
-        return ApiResponse.not_found(resource="Customer", resource_id=customer_id)
+        return create_response(success=False, message=str(e), status=404)
 
     except Exception as e:
         logger.error(f"Error fetching customer by ID {customer_id}: {e}", exc_info=True)
-        return ApiResponse.internal_server_error()
+        return create_response(success=False, message="Internal server error", status=500)
 
 
 @customer_bp.route('/customers/<int:customer_id>', methods=['DELETE'])
@@ -162,28 +140,21 @@ def get_customer_by_id(customer_id, customer_service: CustomerService):
 def delete_customer(customer_id, customer_service: CustomerService):
     """
     Endpoint to delete an existing customer.
-
-    Args:
-        customer_id (int): The ID of the customer to delete.
-
-    Returns:
-        JSON: A JSON response indicating if the deletion was successful or an error message.
     """
     try:
         logger.info(f"Deleting customer with ID: {customer_id}")
         result = customer_service.delete_customer(customer_id)
 
         if not result:
-            logger.warning(f"Customer with ID {customer_id} not found.")
-            raise NotFound(f"Customer with ID {customer_id} not found")
+            raise NotFound("Customer not found")
 
         logger.info(f"Customer with ID {customer_id} deleted successfully")
-        return ApiResponse.ok(data=[{"deleted_id": customer_id}])
+        return create_response(success=True, result={"deleted_id": customer_id}, status=200)
 
     except NotFound as e:
         logger.error(f"Customer not found: {e}")
-        return ApiResponse.not_found(resource="Customer", resource_id=customer_id)
+        return create_response(success=False, message=str(e), status=404)
 
     except Exception as e:
         logger.error(f"Error deleting customer with ID {customer_id}: {e}", exc_info=True)
-        return ApiResponse.internal_server_error()
+        return create_response(success=False, message="Internal server error", status=500)

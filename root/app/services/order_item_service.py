@@ -21,6 +21,15 @@ class OrderItemService:
             logger.error(f"Error creating order item: {e}")
             raise InternalServerError("An error occurred while creating the order item.")
 
+    def get_order_items_paginated(self, page, per_page, id_order=None):
+        try:
+            logger.info(f"Fetching order items with pagination: page {page}, per_page {per_page}")
+            items, total = self.order_item_repository.get_order_items_paginated(page, per_page, id_order)
+            return items, total
+        except Exception as e:
+            logger.error(f"Error fetching paginated order items: {e}")
+            raise InternalServerError("An error occurred while fetching order items.")
+
     def get_order_item_by_id(self, order_item_id):
         try:
             order_item = self.order_item_repository.get_order_item_by_id(order_item_id)

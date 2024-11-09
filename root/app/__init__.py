@@ -13,6 +13,7 @@ from .controllers.order_item_controller import order_item_bp
 from .controllers.product_controller import product_bp
 from .controllers.sales_controller import sale_bp
 from .controllers.credit_account_controller import credit_account_bp
+from .controllers.inventory_controller import inventory_bp
 
 # Import Services
 from .services.tenants_service import TenantService
@@ -22,6 +23,7 @@ from .services.order_item_service import OrderItemService
 from .services.product_service import ProductService
 from .services.sale_service import SaleService
 from .services.credit_account_service import CreditAccountService
+from .services.inventory_service import InventoryService
 
 def configure(binder):
     binder.bind(TenantService, to=TenantService, scope=singleton)
@@ -31,6 +33,7 @@ def configure(binder):
     binder.bind(ProductService, to=ProductService, scope=singleton)
     binder.bind(SaleService, to=SaleService, scope=singleton)
     binder.bind(CreditAccountService, to=CreditAccountService, scope=singleton)
+    binder.bind(InventoryService, to=InventoryService, scope=singleton)
 
 def create_app():
     app = Flask(__name__)
@@ -49,6 +52,7 @@ def create_app():
     app.register_blueprint(order_item_bp, url_prefix='/api/v1')
     app.register_blueprint(product_bp, url_prefix='/api/v1')
     app.register_blueprint(sale_bp, url_prefix='/api/v1')
+    app.register_blueprint(inventory_bp, url_prefix='/api/v1')
 
     FlaskInjector(app=app, modules=[configure])
 

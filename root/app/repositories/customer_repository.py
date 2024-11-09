@@ -6,7 +6,6 @@ class CustomerRepository:
     
     @staticmethod
     def create_customer(full_name, email, phone, address=None, credit_limit=0.0, created_at=None):
-        """Creates a new customer."""
         try:
             new_customer = Customer(
                 full_name=full_name,
@@ -24,32 +23,25 @@ class CustomerRepository:
             raise e
         
     @staticmethod
-    def get_all_customers():
-        """Retrieves all customers."""
-        try:
-            return Customer.query.all()
-        except SQLAlchemyError as e:
-            raise e
+    def get_customers_paginated(page, per_page, full_name=None, email=None):
+        query = Customer.query
+        if full_name:
+            query = query.filter(Customer.full_name.ilike(f"%{full_name}%"))
+        if email:
+            query = query.filter(Customer.email.ilike(f"%{email}%"))
+
+        paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+        return paginated.items, paginated.total
 
     @staticmethod
     def get_customer_by_id(customer_id):
-        """Retrieves a customer by its ID."""
         try:
             return Customer.query.get(customer_id)
         except SQLAlchemyError as e:
             raise e
 
     @staticmethod
-    def get_customer_by_email(email):
-        """Retrieves a customer by email."""
-        try:
-            return Customer.query.filter_by(email=email).first()
-        except SQLAlchemyError as e:
-            raise e
-
-    @staticmethod
     def update_customer(customer_id, full_name=None, email=None, phone=None, address=None, credit_limit=None):
-        """Updates an existing customer."""
         try:
             customer = Customer.query.get(customer_id)
             if customer is None:
@@ -74,7 +66,6 @@ class CustomerRepository:
 
     @staticmethod
     def delete_customer(customer_id):
-        """Deletes a customer by its ID."""
         try:
             customer = Customer.query.get(customer_id)
             if customer is None:

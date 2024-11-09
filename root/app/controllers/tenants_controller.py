@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from flask_injector import inject
 from werkzeug.exceptions import BadRequest, NotFound
 from app.services.tenants_service import TenantService
-from app.utils.api_response import ApiResponse
+from app.utils.response import create_response
 import logging
 
 # Logger configuration
@@ -37,13 +37,13 @@ def create_tenant(tenant_service: TenantService):
 
         new_tenant = tenant_service.create_tenant(tenant_name, schema_name)
 
-        return ApiResponse.created(data=[new_tenant.as_dict()]) 
+        return create_response.created(data=[new_tenant.as_dict()]) 
 
     except BadRequest as e:
-        return ApiResponse.bad_request(message=str(e))
+        return create_response.bad_request(message=str(e))
     except Exception as e:
         logger.error(f"Error creating tenant: {e}")
-        return ApiResponse.internal_server_error()
+        return create_response.internal_server_error()
 
 
 @tenant_bp.route('/tenants', methods=['GET'])
@@ -58,12 +58,12 @@ def get_all_tenants(tenant_service: TenantService):
     try:
         tenants = tenant_service.get_all_tenants(performed_by=request.headers.get('X-User'))
 
-        return ApiResponse.ok(data=[tenant.as_dict() for tenant in tenants])
+        return create_response.ok(data=[tenant.as_dict() for tenant in tenants])
     except NotFound as e:
-        return ApiResponse.not_found(resource='tenant', resource_id='all')
+        return create_response.not_found(resource='tenant', resource_id='all')
     except Exception as e:
         logger.error(f"Error fetching tenants: {e}")
-        return ApiResponse.internal_server_error()
+        return create_response.internal_server_error()
 
 
 @tenant_bp.route('/tenants/<int:tenant_id>', methods=['GET'])
@@ -81,12 +81,12 @@ def get_tenant_by_id(tenant_id, tenant_service: TenantService):
     try:
         tenant = tenant_service.get_tenant_by_id(tenant_id)
 
-        return ApiResponse.ok(data=[tenant.as_dict()])
+        return create_response.ok(data=[tenant.as_dict()])
     except NotFound as e:
-        return ApiResponse.not_found(resource='tenant', resource_id=tenant_id)
+        return create_response.not_found(resource='tenant', resource_id=tenant_id)
     except Exception as e:
         logger.error(f"Error fetching tenant by ID {tenant_id}: {e}")
-        return ApiResponse.internal_server_error()
+        return create_response.internal_server_error()
 
 
 @tenant_bp.route('/tenants/<int:tenant_id>', methods=['PUT'])
@@ -112,14 +112,14 @@ def update_tenant(tenant_id, tenant_service: TenantService):
             schema_name=data.get('schema_name'),
         )
 
-        return ApiResponse.updated(data=[updated_tenant.as_dict()])  # Usamos ApiResponse.updated
+        return create_response.updated(data=[updated_tenant.as_dict()])  # Usamos ApiResponse.updated
     except BadRequest as e:
-        return ApiResponse.bad_request(message=str(e))
+        return create_response.bad_request(message=str(e))
     except NotFound as e:
-        return ApiResponse.not_found(resource='tenant', resource_id=tenant_id)
+        return create_response.not_found(resource='tenant', resource_id=tenant_id)
     except Exception as e:
         logger.error(f"Error updating tenant with ID {tenant_id}: {e}")
-        return ApiResponse.internal_server_error()
+        return create_response.internal_server_error()
 
 
 @tenant_bp.route('/tenants/<int:tenant_id>', methods=['DELETE'])
@@ -138,12 +138,12 @@ def delete_tenant(tenant_id, tenant_service: TenantService):
         result = tenant_service.delete_tenant(tenant_id)
 
         if result:
-            return ApiResponse.deleted(deleted_id=tenant_id)
+            return create_response.deleted(deleted_id=tenant_id)
 
-        return ApiResponse.error(message="Tenant deletion failed.", status=400)
+        return create_response.error(message="Tenant deletion failed.", status=400)
 
     except NotFound as e:
-        return ApiResponse.not_found(resource='tenant', resource_id=tenant_id)
+        return create_response.not_found(resource='tenant', resource_id=tenant_id)
     except Exception as e:
         logger.error(f"Error deleting tenant with ID {tenant_id}: {e}")
-        return ApiResponse.internal_server_error()
+        return create_response.internal_server_error()

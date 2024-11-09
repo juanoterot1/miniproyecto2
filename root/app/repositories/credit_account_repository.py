@@ -39,3 +39,16 @@ class CreditAccountRepository:
         except SQLAlchemyError as e:
             db.session.rollback()
             raise e
+
+    @staticmethod
+    def get_credit_accounts_paginated(page, per_page, id_customer=None, min_balance=None, max_balance=None):
+        query = CreditAccount.query
+        if id_customer:
+            query = query.filter_by(id_customer=id_customer)
+        if min_balance:
+            query = query.filter(CreditAccount.credit_balance >= min_balance)
+        if max_balance:
+            query = query.filter(CreditAccount.credit_balance <= max_balance)
+        
+        paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+        return paginated.items, paginated.total

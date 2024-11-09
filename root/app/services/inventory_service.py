@@ -31,6 +31,15 @@ class InventoryService:
             logger.error(f"Error retrieving inventory item by ID {item_id}: {e}")
             raise InternalServerError("An error occurred while retrieving the inventory item.")
 
+    def get_inventory_items_paginated(self, page, per_page, **filters):
+        try:
+            logger.info(f"Fetching inventory items with pagination: page {page}, per_page {per_page}")
+            items, total = self.inventory_repository.get_inventory_items_paginated(page, per_page, **filters)
+            return items, total
+        except Exception as e:
+            logger.error(f"Error fetching paginated inventory items: {e}")
+            raise InternalServerError("An error occurred while fetching paginated inventory items.")
+
     def delete_inventory_item(self, item_id):
         try:
             result = self.inventory_repository.delete_inventory_item(item_id)

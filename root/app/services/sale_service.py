@@ -21,6 +21,15 @@ class SaleService:
             logger.error(f"Error creating sale: {e}")
             raise InternalServerError("An error occurred while creating the sale.")
 
+    def get_sales_paginated(self, page, per_page):
+        try:
+            logger.info(f"Fetching sales with pagination: page {page}, per_page {per_page}")
+            sales, total = self.sale_repository.get_sales_paginated(page, per_page)
+            return sales, total
+        except Exception as e:
+            logger.error(f"Error fetching paginated sales: {e}")
+            raise InternalServerError("An error occurred while retrieving sales.")
+
     def get_sale_by_id(self, sale_id):
         try:
             sale = self.sale_repository.get_sale_by_id(sale_id)
