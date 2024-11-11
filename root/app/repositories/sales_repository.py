@@ -22,10 +22,12 @@ class SaleRepository:
     @staticmethod
     def get_sales_paginated(page, per_page):
         try:
-            paginated = Sale.query.paginate(page=page, per_page=per_page, error_out=False)
+            # Orden descendente por id para mostrar las ventas más recientes primero
+            paginated = Sale.query.order_by(Sale.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
             return paginated.items, paginated.total
         except SQLAlchemyError as e:
             raise e
+
 
     @staticmethod
     def get_sale_by_id(sale_id):

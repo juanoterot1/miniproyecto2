@@ -28,6 +28,9 @@ class OrderRepository:
         if id_customer:
             query = query.filter_by(id_customer=id_customer)
 
+        # Cambiamos la ordenación para que sea descendente
+        query = query.order_by(Order.id.desc())  # Orden descendente para que el último sea el primero
+
         paginated = query.paginate(page=page, per_page=per_page, error_out=False)
         return paginated.items, paginated.total
 
