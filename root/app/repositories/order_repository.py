@@ -1,6 +1,10 @@
 from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
+from sqlalchemy import func, desc
+from app.extensions import db
 from app.models.orders import Order
+from app.models.order_items import OrderItem
+from app.models.customers import Customer
 
 class OrderRepository:
     
@@ -74,3 +78,36 @@ class OrderRepository:
         except SQLAlchemyError as e:
             db.session.rollback()
             raise e
+        
+    # Métodos de conteo y estadísticas
+    @staticmethod
+    def get_total_orders():
+        return db.session.query(func.count(Order.id)).scalar()
+
+    @staticmethod
+    def get_total_completed_orders():
+        return db.session.query(func.count(Order.id)).filter(Order.status == 'Completada').scalar()
+
+    @staticmethod
+    def get_total_pending_orders():
+        return db.session.query(func.count(Order.id)).filter(Order.status == 'Pendiente').scalar()
+
+    @staticmethod
+    def get_top_customers_by_sales(limit=3):
+        return db.session.query(
+            Customer.id,
+            Customer.full_name,
+            func.count(Order.id).label("total_orders")
+        ).join(Order, Order.id_customer == Customer.id) \
+         .group_by(Customer.id) \
+         .order_by(desc("total_orders")) \
+         .limit(limit).all()
+
+    @staticmethod
+    def get_top_selling_products(limit=3):
+        return db.session.query(
+            OrderItem.id_product,
+            func.sum(OrderItem.quantity).label("total_quantity")
+        ).group_by(OrderItem.id_product) \
+         .order_by(desc("total_quantity")) \
+         .limit(limit).all()

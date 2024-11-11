@@ -125,3 +125,34 @@ def delete_order(order_id, order_service: OrderService):
     except Exception as e:
         logger.error(f"Error deleting order with ID {order_id}: {e}")
         return create_response(success=False, message="Internal server error", status=500)
+    
+@order_bp.route('/orders/statistics', methods=['GET'])
+@inject
+def get_order_statistics(order_service: OrderService):
+    try:
+        stats = order_service.get_statistics()
+        return create_response(success=True, result=stats, status=200)
+    except Exception as e:
+        logger.error(f"Error fetching order statistics: {e}")
+        return create_response(success=False, message="Internal server error", status=500)
+
+@order_bp.route('/orders/top-customers', methods=['GET'])
+@inject
+def get_top_customers(order_service: OrderService):
+    try:
+        top_customers = order_service.get_top_customers()
+        return create_response(success=True, result=top_customers, status=200)
+    except Exception as e:
+        logger.error(f"Error fetching top customers: {e}")
+        return create_response(success=False, message="Internal server error", status=500)
+
+@order_bp.route('/orders/top-products', methods=['GET'])
+@inject
+def get_top_selling_products(order_service: OrderService):
+    try:
+        top_products = order_service.get_top_selling_products()
+        return create_response(success=True, result=top_products, status=200)
+    except Exception as e:
+        logger.error(f"Error fetching top selling products: {e}")
+        return create_response(success=False, message="Internal server error", status=500)
+
