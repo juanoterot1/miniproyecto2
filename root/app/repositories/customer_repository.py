@@ -29,6 +29,9 @@ class CustomerRepository:
             query = query.filter(Customer.full_name.ilike(f"%{full_name}%"))
         if email:
             query = query.filter(Customer.email.ilike(f"%{email}%"))
+        
+        # Orden descendente por id para mostrar los clientes más recientes primero
+        query = query.order_by(Customer.id.desc())
 
         paginated = query.paginate(page=page, per_page=per_page, error_out=False)
         return paginated.items, paginated.total

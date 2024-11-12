@@ -23,7 +23,8 @@ class ProductRepository:
     @staticmethod
     def get_products_paginated(page, per_page):
         try:
-            paginated = Product.query.paginate(page=page, per_page=per_page, error_out=False)
+            # Orden descendente por id para mostrar los productos más recientes primero
+            paginated = Product.query.order_by(Product.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
             return paginated.items, paginated.total
         except SQLAlchemyError as e:
             raise e

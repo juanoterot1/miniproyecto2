@@ -50,5 +50,8 @@ class CreditAccountRepository:
         if max_balance:
             query = query.filter(CreditAccount.credit_balance <= max_balance)
         
+        # Orden descendente por id
+        query = query.order_by(CreditAccount.id.desc())
+
         paginated = query.paginate(page=page, per_page=per_page, error_out=False)
         return paginated.items, paginated.total

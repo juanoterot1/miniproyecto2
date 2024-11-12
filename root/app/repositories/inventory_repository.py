@@ -35,6 +35,9 @@ class InventoryRepository:
             query = query.filter(Inventory.stock_quantity >= min_stock)
         if max_stock is not None:
             query = query.filter(Inventory.stock_quantity <= max_stock)
+        
+        # Orden descendente por id para mostrar los elementos más recientes primero
+        query = query.order_by(Inventory.id.desc())
 
         paginated = query.paginate(page=page, per_page=per_page, error_out=False)
         return paginated.items, paginated.total
